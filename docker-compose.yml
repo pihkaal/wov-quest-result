@@ -3,6 +3,15 @@ services:
     image: pihkaal/wov-quest-result:latest
     networks:
       - web
+    environment:
+      - WOV_CLAN_ID
+      - WOV_API_KEY
+      - WOV_FETCH_INTERVAL
+      - QUEST_REWARDS
+      - QUEST_EXCLUDE
+      - DISCORD_WEBHOOK_URL
+      - DISCORD_MENTION
+      - DISCORD_REWARDS_GIVER
     restart: always
 
 networks:
