@@ -1,0 +1,15 @@
+{
+  "name": "wov-quest-results",
+  "module": "src/index.ts",
+  "type": "module",
+  "scripts": {
+    "format": "prettier --write --cache ."
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "prettier": "^3.5.3"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  }
+}
