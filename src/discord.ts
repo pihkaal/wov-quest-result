@@ -34,7 +34,6 @@ const makeEmbed = (result: QuestResult): DiscordMessage => {
 
   let rewardsEmbed: DiscordEmbed | undefined;
   if (env.QUEST_REWARDS) {
-    console.log(env.QUEST_REWARDS);
     const rewardedParticipants = participants
       .map((x) => x.username)
       .filter((x) => !env.QUEST_EXCLUDE.includes(x));
