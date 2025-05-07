@@ -23,7 +23,9 @@ const result = schema.safeParse(bunEnv);
 if (!result.success) {
   console.log("❌ Invalid environments variables:");
   console.log(
-    result.error.errors.map((x) => `- ${x.path.join(".")}: ${x.message}`),
+    result.error.errors
+      .map((x) => `- ${x.path.join(".")}: ${x.message}`)
+      .join("\n"),
   );
   process.exit(1);
 }
