@@ -1,0 +1,10 @@
+services:
+  wov-quest-result:
+    image: pihkaal/wov-quest-result:latest
+    networks:
+      - web
+    restart: always
+
+networks:
+  web:
+    external: true
