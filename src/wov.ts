@@ -1,4 +1,5 @@
 import { env } from "./env";
+import { mkdir } from "node:fs/promises";
 
 export type QuestResult = {
   quest: {
@@ -26,11 +27,12 @@ export const checkForNewQuest = async (): Promise<QuestResult | null> => {
   const history = (await response.json()) as Array<QuestResult>;
 
   const lastId = history[0].quest.id;
-  const cacheFile = Bun.file(".quest_cache");
+  const cacheFile = Bun.file(".cache/.quest_cache");
+  await mkdir(".cache", { recursive: true });
   if ((await cacheFile.exists()) && (await cacheFile.text()) === lastId) {
     return null;
   }
 
-  cacheFile.write(lastId);
+  await cacheFile.write(lastId);
   return history[0];
 };
