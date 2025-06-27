@@ -47,7 +47,9 @@ const askForGrinders = async (quest: QuestResult) => {
   });
 
   const filter = (msg: Message) =>
-    msg.channel.id === channel.id && !msg.author.bot;
+    msg.channel.id === channel.id &&
+    !msg.author.bot &&
+    msg.content.startsWith(`<@${client.user!.id}>`);
 
   let confirmed = false;
   let answer: string | null = null;
@@ -55,6 +57,7 @@ const askForGrinders = async (quest: QuestResult) => {
     const collected = await channel.awaitMessages({ filter, max: 1 });
     answer = collected.first()?.content || null;
     if (!answer) continue;
+    answer = answer.replace(`<@${client.user!.id}>`, "");
 
     const players = answer
       .split(",")
@@ -125,7 +128,7 @@ client.on("messageCreate", async (message) => {
   if (message.author.bot) return;
 
   if (message.content.startsWith(`<@${client.user!.id}>`)) {
-    await message.reply("Ok");
+    await message.reply("tg");
   }
 });
 
