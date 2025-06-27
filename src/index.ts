@@ -40,7 +40,7 @@ const askForGrinders = async (quest: QuestResult) => {
       {
         title: "Qui a grind ?",
         description:
-          "Merci d'entrer les pseudos des joueurs qui ont grind.\n\nFormat:```laulau18,Yuno,...```\n**Attention aux majuscules**",
+          "Merci d'entrer les pseudos des joueurs qui ont grind.\n\nFormat:```@LBF laulau,Yuno,...```\n**Attention les majuscules comptent**\nPour entrer la liste des joueurs, il faut __mentionner le bot__, si personne n'a grind, `@LBF tg`",
         color,
       },
     ],
@@ -57,7 +57,12 @@ const askForGrinders = async (quest: QuestResult) => {
     const collected = await channel.awaitMessages({ filter, max: 1 });
     answer = collected.first()?.content || null;
     if (!answer) continue;
-    answer = answer.replace(`<@${client.user!.id}>`, "");
+
+    answer = answer.replace(`<@${client.user!.id}>`, "").trim();
+    if (answer.toLowerCase() === "tg") {
+      answer = "";
+      break;
+    }
 
     const players = answer
       .split(",")
@@ -127,8 +132,8 @@ client.on("ready", async (client) => {
 client.on("messageCreate", async (message) => {
   if (message.author.bot) return;
 
-  if (message.content.startsWith(`<@${client.user!.id}>`)) {
-    await message.reply("tg");
+  if (message.content.startsWith(`<@${client.user!.id}> ping`)) {
+    await message.reply("pong");
   }
 });
 
