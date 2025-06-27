@@ -117,28 +117,16 @@ const fn = async () => {
 client.on("ready", async (client) => {
   console.log(`Logged in as ${client.user.username}`);
 
-  const quest = await getLatestQuest();
-  await askForGrinders(quest);
-
-  // await fn();
-  // setInterval(fn, env.WOV_FETCH_INTERVAL);
+  await fn();
+  setInterval(fn, env.WOV_FETCH_INTERVAL);
 });
 
 client.on("messageCreate", async (message) => {
   if (message.author.bot) return;
 
-  message.channel;
-
-  // await message.channel.send({
-  // content: `-# ||${env.DISCORD_ADMIN_MENTION}||`,
-  // embeds: [
-  //   {
-  //     title: "Quête terminée !",
-  //     description: "Entrez les pseudos des gens à exclure de la quête",
-  //     color: 0x3498db,
-  //   },
-  // ],
-  // })
+  if (message.content.startsWith(`<@${client.user!.id}>`)) {
+    await message.reply("Ok");
+  }
 });
 
 await client.login(env.DISCORD_BOT_TOKEN);
