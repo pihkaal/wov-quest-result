@@ -18,6 +18,7 @@ const askForGrinders = async (quest: QuestResult) => {
     throw "Invalid admin channel provided";
 
   const top10 = quest.participants
+    .filter((x) => !env.QUEST_EXCLUDE.includes(x.username))
     .sort((a, b) => b.xp - a.xp)
     .slice(0, 10)
     .map((p, i) => `${i + 1}. ${p.username} - ${p.xp}xp`)
