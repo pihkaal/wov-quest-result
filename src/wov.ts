@@ -16,7 +16,7 @@ export type QuestParticipant = {
   xp: number;
 };
 
-export const checkForNewQuest = async (): Promise<QuestResult | null> => {
+export const getLatestQuest = async (): Promise<QuestResult> => {
   const response = await fetch(
     `https://api.wolvesville.com/clans/${env.WOV_CLAN_ID}/quests/history`,
     {
@@ -25,8 +25,13 @@ export const checkForNewQuest = async (): Promise<QuestResult | null> => {
     },
   );
   const history = (await response.json()) as Array<QuestResult>;
+  return history[0];
+};
 
-  const lastId = history[0].quest.id;
+export const checkForNewQuest = async (): Promise<QuestResult | null> => {
+  const lastQuest = await getLatestQuest();
+
+  const lastId = lastQuest.quest.id;
   const cacheFile = Bun.file(".cache/.quest_cache");
   await mkdir(".cache", { recursive: true });
   if ((await cacheFile.exists()) && (await cacheFile.text()) === lastId) {
@@ -34,5 +39,5 @@ export const checkForNewQuest = async (): Promise<QuestResult | null> => {
   }
 
   await cacheFile.write(lastId);
-  return history[0];
+  return lastQuest;
 };

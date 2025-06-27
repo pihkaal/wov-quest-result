@@ -15,19 +15,10 @@ export type DiscordEmbed = {
   color: number;
 };
 
-export const postEmbed = async (result: QuestResult): Promise<void> => {
-  const embed = makeEmbed(result);
-  await fetch(env.DISCORD_WEBHOOK_URL, {
-    method: "POST",
-    body: JSON.stringify(embed),
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json",
-    },
-  });
-};
-
-const makeEmbed = (result: QuestResult): DiscordMessage => {
+export const makeResultEmbed = (
+  result: QuestResult,
+  exclude: Array<string>,
+): DiscordMessage => {
   const imageUrl = result.quest.promoImageUrl;
   const color = parseInt(result.quest.promoImagePrimaryColor.substring(1), 16);
   const participants = result.participants.toSorted((a, b) => b.xp - a.xp);
@@ -36,7 +27,7 @@ const makeEmbed = (result: QuestResult): DiscordMessage => {
   if (env.QUEST_REWARDS) {
     const rewardedParticipants = participants
       .map((x) => x.username)
-      .filter((x) => !env.QUEST_EXCLUDE.includes(x));
+      .filter((x) => !exclude.includes(x));
     const medals = ["🥇", "🥈", "🥉"].concat(
       new Array(rewardedParticipants.length).fill("🏅"),
     );
@@ -69,7 +60,7 @@ const makeEmbed = (result: QuestResult): DiscordMessage => {
       {
         title: "Classement",
         description: participants
-          .filter((x) => !env.QUEST_EXCLUDE.includes(x.username))
+          .filter((x) => !exclude.includes(x.username))
           .filter((_, i) => i < 8)
           .map((p, i) => `${i + 1}. ${p.username} - ${p.xp}xp`)
           .join("\n"),

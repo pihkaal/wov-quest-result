@@ -2,9 +2,11 @@ import { env as bunEnv } from "bun";
 import { z } from "zod";
 
 const schema = z.object({
-  DISCORD_WEBHOOK_URL: z.string(),
+  DISCORD_BOT_TOKEN: z.string(),
   DISCORD_MENTION: z.string(),
   DISCORD_REWARDS_GIVER: z.string(),
+  DISCORD_ADMIN_MENTION: z.string(),
+  DISCORD_ADMIN_CHANNEL: z.string(),
   WOV_API_KEY: z.string(),
   WOV_CLAN_ID: z.string(),
   WOV_FETCH_INTERVAL: z.coerce.number(),
