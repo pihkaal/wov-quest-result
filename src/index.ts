@@ -100,7 +100,7 @@ const askForGrinders = async (quest: QuestResult) => {
     }
   }
 
-  if (!answer) throw "unreachable";
+  if (answer === null) throw "unreachable";
 
   const exclude = answer
     .split(",")
