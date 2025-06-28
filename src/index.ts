@@ -133,8 +133,14 @@ client.on("ready", async (client) => {
 client.on("messageCreate", async (message) => {
   if (message.author.bot) return;
 
-  if (message.content.startsWith(`<@${client.user!.id}> ping`)) {
-    await message.reply("pong");
+  if (message.content.startsWith(`<@${client.user!.id}>`)) {
+    const command = message.content.replace(`<@${client.user!.id}>`, "").trim();
+    if (command === "ping") {
+      await message.reply("pong");
+    } else if (command === "result") {
+      const quest = await getLatestQuest();
+      await askForGrinders(quest);
+    }
   }
 });
 
