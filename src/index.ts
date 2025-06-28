@@ -13,8 +13,8 @@ const client = new Client({
 });
 
 const askForGrinders = async (quest: QuestResult) => {
-  const channel = await client.channels.fetch(env.DISCORD_ADMIN_CHANNEL);
-  if (!channel || channel.type !== ChannelType.GuildText)
+  const adminChannel = await client.channels.fetch(env.DISCORD_ADMIN_CHANNEL);
+  if (!adminChannel || adminChannel.type !== ChannelType.GuildText)
     throw "Invalid admin channel provided";
 
   const top10 = quest.participants
@@ -26,7 +26,7 @@ const askForGrinders = async (quest: QuestResult) => {
 
   const color = parseInt(quest.quest.promoImagePrimaryColor.substring(1), 16);
 
-  await channel.send({
+  await adminChannel.send({
     content: `-# ||${env.DISCORD_ADMIN_MENTION}||`,
     embeds: [
       {
@@ -48,14 +48,14 @@ const askForGrinders = async (quest: QuestResult) => {
   });
 
   const filter = (msg: Message) =>
-    msg.channel.id === channel.id &&
+    msg.channel.id === adminChannel.id &&
     !msg.author.bot &&
     msg.content.startsWith(`<@${client.user!.id}>`);
 
   let confirmed = false;
   let answer: string | null = null;
   while (!confirmed) {
-    const collected = await channel.awaitMessages({ filter, max: 1 });
+    const collected = await adminChannel.awaitMessages({ filter, max: 1 });
     answer = collected.first()?.content || null;
     if (!answer) continue;
 
@@ -69,7 +69,7 @@ const askForGrinders = async (quest: QuestResult) => {
       .split(",")
       .map((x) => x.trim())
       .filter(Boolean);
-    await channel.send({
+    await adminChannel.send({
       embeds: [
         {
           title: "Joueurs entrés",
@@ -82,19 +82,19 @@ const askForGrinders = async (quest: QuestResult) => {
       content: `Est-ce correct ? (oui/non)`,
     });
     const confirmFilter = (msg: Message) =>
-      msg.channel.id === channel.id &&
+      msg.channel.id === adminChannel.id &&
       !msg.author.bot &&
       ["oui", "non", "yes", "no"].includes(msg.content.toLowerCase());
-    const confirmCollected = await channel.awaitMessages({
+    const confirmCollected = await adminChannel.awaitMessages({
       filter: confirmFilter,
       max: 1,
     });
     const confirmation = confirmCollected.first()?.content.toLowerCase();
     if (confirmation === "oui" || confirmation === "yes") {
       confirmed = true;
-      await channel.send({ content: "Ok" });
+      await adminChannel.send({ content: "Ok" });
     } else {
-      await channel.send({
+      await adminChannel.send({
         content: "D'accord, veuillez réessayer. Qui a grind ?",
       });
     }
@@ -115,6 +115,8 @@ const askForGrinders = async (quest: QuestResult) => {
   } else {
     throw "Invalid reward channel";
   }
+
+  await adminChannel.send("Envoyé !");
   console.log(`Quest result posted at: ${new Date().toISOString()}`);
 };
 
