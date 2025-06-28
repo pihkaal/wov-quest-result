@@ -5,6 +5,7 @@ const schema = z.object({
   DISCORD_BOT_TOKEN: z.string(),
   DISCORD_MENTION: z.string(),
   DISCORD_REWARDS_GIVER: z.string(),
+  DISCORD_REWARDS_CHANNEL: z.string(),
   DISCORD_ADMIN_MENTION: z.string(),
   DISCORD_ADMIN_CHANNEL: z.string(),
   WOV_API_KEY: z.string(),

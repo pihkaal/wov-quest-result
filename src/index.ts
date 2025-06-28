@@ -107,7 +107,9 @@ const askForGrinders = async (quest: QuestResult) => {
     .map((x) => x.trim())
     .filter(Boolean);
   const embed = makeResultEmbed(quest, [...env.QUEST_EXCLUDE, ...exclude]);
-  const rewardChannel = await client.channels.fetch(env.DISCORD_ADMIN_CHANNEL);
+  const rewardChannel = await client.channels.fetch(
+    env.DISCORD_REWARDS_CHANNEL,
+  );
   if (rewardChannel && rewardChannel.type === ChannelType.GuildText) {
     await rewardChannel.send(embed);
   } else {
