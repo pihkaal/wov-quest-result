@@ -36,7 +36,7 @@ export const checkForNewQuest = async (): Promise<QuestResult | null> => {
   await mkdir(".cache", { recursive: true });
   if (await cacheFile.exists()) {
     const cachedQuestId = await cacheFile.text();
-    if(cachedQuestId === lastId || cachedQuestId === "IGNORE") {
+    if (cachedQuestId === lastId || cachedQuestId === "IGNORE") {
       return null;
     }
   }

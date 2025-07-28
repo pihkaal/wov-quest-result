@@ -112,7 +112,10 @@ const askForGrinders = async (quest: QuestResult) => {
     .split(",")
     .map((x) => x.trim())
     .filter(Boolean);
-  const embed = await makeResultEmbed(quest, [...env.QUEST_EXCLUDE, ...exclude]);
+  const embed = await makeResultEmbed(quest, [
+    ...env.QUEST_EXCLUDE,
+    ...exclude,
+  ]);
   const rewardChannel = await client.channels.fetch(
     env.DISCORD_REWARDS_CHANNEL,
   );
@@ -169,22 +172,25 @@ client.on("messageCreate", async (message) => {
           `'${args[0]}' n'est pas dans le clan (la honte). **Attention les majuscules sont importantes**`,
         );
       } else {
-        if(args.length === 2) {
-            if (
+        if (args.length === 2) {
+          if (
             (args[1][0] !== "+" && args[1][0] !== "-") ||
             !args[1] ||
             isNaN(Number(args[1].substring(1)))
-            ) {
+          ) {
             await message.reply(
               `Format: \`@LBF gemmes <pseudo> <+GEMMES|-GEMMES>\`.\nExemple:\`@LBF gemmes Yuno -10000\`. **Attention les majuscules sont importantes**`,
             );
             return;
-            }
+          }
 
-          const mult = args[1][0] === '+' ? 1 : -1;
+          const mult = args[1][0] === "+" ? 1 : -1;
           const delta = Number(args[1].substring(1)) * mult;
           const balance = await getAccountBalance(clanMember.playerId);
-          await setAccountBalance(clanMember.playerId, Math.max(0, balance + delta));
+          await setAccountBalance(
+            clanMember.playerId,
+            Math.max(0, balance + delta),
+          );
         }
 
         const balance = await getAccountBalance(clanMember.playerId);
