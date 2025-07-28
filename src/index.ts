@@ -146,7 +146,7 @@ client.on("ready", async (client) => {
 });
 
 client.on("messageCreate", async (message) => {
-  if (message.author.bot) return;
+  if (message.author.bot || !message.member) return;
 
   if (message.content.startsWith(`<@${client.user!.id}>`)) {
     const [command, ...args] = message.content
@@ -173,6 +173,13 @@ client.on("messageCreate", async (message) => {
         );
       } else {
         if (args.length === 2) {
+          if (!message.member.roles.cache.has("1147963065640439900")) {
+            await message.reply(
+              "Tu t'es cru chez mémé ou quoi faut être staff",
+            );
+            return;
+          }
+
           if (
             (args[1][0] !== "+" && args[1][0] !== "-") ||
             !args[1] ||
