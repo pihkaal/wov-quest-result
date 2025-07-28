@@ -34,8 +34,11 @@ export const checkForNewQuest = async (): Promise<QuestResult | null> => {
   const lastId = lastQuest.quest.id;
   const cacheFile = Bun.file(".cache/.quest_cache");
   await mkdir(".cache", { recursive: true });
-  if ((await cacheFile.exists()) && (await cacheFile.text()) === lastId) {
-    return null;
+  if (await cacheFile.exists()) {
+    const cachedQuestId = await cacheFile.text();
+    if(cachedQuestId === lastId || cachedQuestId === "IGNORE") {
+      return null;
+    }
   }
 
   await cacheFile.write(lastId);

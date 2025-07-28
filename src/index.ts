@@ -138,8 +138,8 @@ client.on("ready", async (client) => {
 
   await initAccounts();
 
-  // await fn();
-  // setInterval(fn, env.WOV_FETCH_INTERVAL);
+  await fn();
+  setInterval(fn, env.WOV_FETCH_INTERVAL);
 });
 
 client.on("messageCreate", async (message) => {
@@ -169,19 +169,26 @@ client.on("messageCreate", async (message) => {
           `'${args[0]}' n'est pas dans le clan (la honte). **Attention les majuscules sont importantes**`,
         );
       } else {
+        if(args.length === 2) {
+            if (
+            (args[1][0] !== "+" && args[1][0] !== "-") ||
+            !args[1] ||
+            isNaN(Number(args[1].substring(1)))
+            ) {
+            await message.reply(
+              `Format: \`@LBF gemmes <pseudo> <+GEMMES|-GEMMES>\`.\nExemple:\`@LBF gemmes Yuno -10000\`. **Attention les majuscules sont importantes**`,
+            );
+            return;
+            }
+
+          const mult = args[1][0] === '+' ? 1 : -1;
+          const delta = Number(args[1].substring(1)) * mult;
+          const balance = await getAccountBalance(clanMember.playerId);
+          await setAccountBalance(clanMember.playerId, Math.max(0, balance + delta));
+        }
+
         const balance = await getAccountBalance(clanMember.playerId);
         await message.reply(`Gemmes accumulées par ${playerName}: ${balance}`);
-      }
-    } else if (command === "zero") {
-      const playerName = message.author.displayName.replace("🕸 |", "").trim();
-      const clanMembers = await getClanMembers();
-      const clanMember = clanMembers.find((x) => x.username === playerName);
-
-      if (!clanMember) {
-        await message.reply("Pas du clan pas de gemmes");
-      } else {
-        await setAccountBalance(clanMember.playerId, 0);
-        await message.reply("Zero gemmes mtn bouuh");
       }
     }
   }
