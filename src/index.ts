@@ -1,6 +1,12 @@
+import { getAccountBalance, initAccounts, setAccountBalance } from "./account";
 import { makeResultEmbed } from "./discord";
 import { env } from "./env";
-import { checkForNewQuest, getLatestQuest, type QuestResult } from "./wov";
+import {
+  checkForNewQuest,
+  getClanMembers,
+  getLatestQuest,
+  type QuestResult,
+} from "./wov";
 
 import { ChannelType, Client, GatewayIntentBits, Message } from "discord.js";
 
@@ -13,8 +19,8 @@ const client = new Client({
 });
 
 const askForGrinders = async (quest: QuestResult) => {
-  const channel = await client.channels.fetch(env.DISCORD_ADMIN_CHANNEL);
-  if (!channel || channel.type !== ChannelType.GuildText)
+  const adminChannel = await client.channels.fetch(env.DISCORD_ADMIN_CHANNEL);
+  if (!adminChannel || adminChannel.type !== ChannelType.GuildText)
     throw "Invalid admin channel provided";
 
   const top10 = quest.participants
@@ -26,7 +32,7 @@ const askForGrinders = async (quest: QuestResult) => {
 
   const color = parseInt(quest.quest.promoImagePrimaryColor.substring(1), 16);
 
-  await channel.send({
+  await adminChannel.send({
     content: `-# ||${env.DISCORD_ADMIN_MENTION}||`,
     embeds: [
       {
@@ -48,14 +54,14 @@ const askForGrinders = async (quest: QuestResult) => {
   });
 
   const filter = (msg: Message) =>
-    msg.channel.id === channel.id &&
+    msg.channel.id === adminChannel.id &&
     !msg.author.bot &&
     msg.content.startsWith(`<@${client.user!.id}>`);
 
   let confirmed = false;
   let answer: string | null = null;
   while (!confirmed) {
-    const collected = await channel.awaitMessages({ filter, max: 1 });
+    const collected = await adminChannel.awaitMessages({ filter, max: 1 });
     answer = collected.first()?.content || null;
     if (!answer) continue;
 
@@ -69,7 +75,7 @@ const askForGrinders = async (quest: QuestResult) => {
       .split(",")
       .map((x) => x.trim())
       .filter(Boolean);
-    await channel.send({
+    await adminChannel.send({
       embeds: [
         {
           title: "Joueurs entrés",
@@ -82,19 +88,19 @@ const askForGrinders = async (quest: QuestResult) => {
       content: `Est-ce correct ? (oui/non)`,
     });
     const confirmFilter = (msg: Message) =>
-      msg.channel.id === channel.id &&
+      msg.channel.id === adminChannel.id &&
       !msg.author.bot &&
       ["oui", "non", "yes", "no"].includes(msg.content.toLowerCase());
-    const confirmCollected = await channel.awaitMessages({
+    const confirmCollected = await adminChannel.awaitMessages({
       filter: confirmFilter,
       max: 1,
     });
     const confirmation = confirmCollected.first()?.content.toLowerCase();
     if (confirmation === "oui" || confirmation === "yes") {
       confirmed = true;
-      await channel.send({ content: "Ok" });
+      await adminChannel.send({ content: "Ok" });
     } else {
-      await channel.send({
+      await adminChannel.send({
         content: "D'accord, veuillez réessayer. Qui a grind ?",
       });
     }
@@ -106,7 +112,7 @@ const askForGrinders = async (quest: QuestResult) => {
     .split(",")
     .map((x) => x.trim())
     .filter(Boolean);
-  const embed = makeResultEmbed(quest, [...env.QUEST_EXCLUDE, ...exclude]);
+  const embed = await makeResultEmbed(quest, [...env.QUEST_EXCLUDE, ...exclude]);
   const rewardChannel = await client.channels.fetch(
     env.DISCORD_REWARDS_CHANNEL,
   );
@@ -115,6 +121,8 @@ const askForGrinders = async (quest: QuestResult) => {
   } else {
     throw "Invalid reward channel";
   }
+
+  await adminChannel.send("Envoyé !");
   console.log(`Quest result posted at: ${new Date().toISOString()}`);
 };
 
@@ -128,20 +136,53 @@ const fn = async () => {
 client.on("ready", async (client) => {
   console.log(`Logged in as ${client.user.username}`);
 
-  await fn();
-  setInterval(fn, env.WOV_FETCH_INTERVAL);
+  await initAccounts();
+
+  // await fn();
+  // setInterval(fn, env.WOV_FETCH_INTERVAL);
 });
 
 client.on("messageCreate", async (message) => {
   if (message.author.bot) return;
 
   if (message.content.startsWith(`<@${client.user!.id}>`)) {
-    const command = message.content.replace(`<@${client.user!.id}>`, "").trim();
+    const [command, ...args] = message.content
+      .replace(`<@${client.user!.id}>`, "")
+      .trim()
+      .split(" ");
     if (command === "ping") {
       await message.reply("pong");
     } else if (command === "result") {
       const quest = await getLatestQuest();
       await askForGrinders(quest);
+    } else if (command === "gemmes") {
+      let playerName = message.author.displayName.replace("🕸 |", "").trim();
+      if (args.length >= 1) {
+        playerName = args[0];
+      }
+
+      const clanMembers = await getClanMembers();
+
+      let clanMember = clanMembers.find((x) => x.username === playerName);
+      if (!clanMember) {
+        await message.reply(
+          `'${args[0]}' n'est pas dans le clan (la honte). **Attention les majuscules sont importantes**`,
+        );
+      } else {
+        const balance = await getAccountBalance(clanMember.playerId);
+        await message.reply(`Gemmes accumulées par ${playerName}: ${balance}`);
+      }
+    } else if (command === "zero") {
+      const playerName = message.author.displayName.replace("🕸 |", "").trim();
+      const clanMembers = await getClanMembers();
+      const clanMember = clanMembers.find((x) => x.username === playerName);
+
+      if (!clanMember) {
+        await message.reply("Pas du clan pas de gemmes");
+      } else {
+        await setAccountBalance(clanMember.playerId, 0);
+        await message.reply("Zero gemmes mtn bouuh");
+      }
     }
   }
 });

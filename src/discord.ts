@@ -1,3 +1,4 @@
+import { getAccountBalance, setAccountBalance } from "./account";
 import { env } from "./env";
 import type { QuestResult } from "./wov";
 
@@ -15,10 +16,10 @@ export type DiscordEmbed = {
   color: number;
 };
 
-export const makeResultEmbed = (
+export const makeResultEmbed = async (
   result: QuestResult,
   exclude: Array<string>,
-): DiscordMessage => {
+): Promise<DiscordMessage> => {
   const imageUrl = result.quest.promoImageUrl;
   const color = parseInt(result.quest.promoImagePrimaryColor.substring(1), 16);
   const participants = result.participants.toSorted((a, b) => b.xp - a.xp);
@@ -26,8 +27,8 @@ export const makeResultEmbed = (
   let rewardsEmbed: DiscordEmbed | undefined;
   if (env.QUEST_REWARDS) {
     const rewardedParticipants = participants
-      .map((x) => x.username)
-      .filter((x) => !exclude.includes(x));
+      .map((x) => ({ id: x.playerId, username: x.username }))
+      .filter((x) => !exclude.includes(x.username));
     const medals = ["🥇", "🥈", "🥉"].concat(
       new Array(rewardedParticipants.length).fill("🏅"),
     );
@@ -35,9 +36,21 @@ export const makeResultEmbed = (
     const rewards = rewardedParticipants
       .slice(0, Math.min(rewardedParticipants.length, env.QUEST_REWARDS.length))
       .map(
-        (username, i) =>
-          `- ${medals[i]} ${username} - ${env.QUEST_REWARDS![i]}`,
+        (x, i) =>
+          `- ${medals[i]} ${x.username} - ${env.QUEST_REWARDS![i]} gemmes`,
       );
+
+    const arr = rewardedParticipants.slice(
+      0,
+      Math.min(rewardedParticipants.length, env.QUEST_REWARDS.length),
+    );
+    for (let i = 0; i < arr.length; i++) {
+      const balance = await getAccountBalance(arr[i].id);
+      await setAccountBalance(
+        arr[i].id,
+        balance + parseInt(env.QUEST_REWARDS![i]),
+      );
+    }
 
     rewardsEmbed = {
       title: "Récompenses",
