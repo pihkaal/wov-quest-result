@@ -54,7 +54,7 @@ export const makeResultEmbed = async (
 
     rewardsEmbed = {
       title: "Récompenses",
-      description: `${rewards.join("\n")}\n\n-# Voir avec ${env.DISCORD_REWARDS_GIVER} pour récupérer les récompenses !`,
+      description: `${rewards.join("\n")}\n\n-# \`@LBF gemmes\` pour voir votre nombre de gemmes. Puis avec ${env.DISCORD_REWARDS_GIVER} pour échanger contre des cadeaux !`,
       color,
     };
   }
