@@ -1,3 +1,4 @@
+import { isFunctionDeclaration } from "typescript";
 import { getAccountBalance, initAccounts, setAccountBalance } from "./account";
 import { makeResultEmbed } from "./discord";
 import { env } from "./env";
@@ -159,7 +160,7 @@ client.on("messageCreate", async (message) => {
       const quest = await getLatestQuest();
       await askForGrinders(quest);
     } else if (command === "gemmes") {
-      let playerName = message.author.displayName.replace("🕸 |", "").trim();
+      let playerName = message.member.displayName.replace("🕸 |", "").trim();
       if (args.length >= 1) {
         playerName = args[0];
       }
@@ -169,7 +170,7 @@ client.on("messageCreate", async (message) => {
       let clanMember = clanMembers.find((x) => x.username === playerName);
       if (!clanMember) {
         await message.reply(
-          `'${args[0]}' n'est pas dans le clan (la honte). **Attention les majuscules sont importantes**`,
+          `'${playerName}' n'est pas dans le clan (la honte). **Attention les majuscules sont importantes**`,
         );
       } else {
         if (args.length === 2) {
