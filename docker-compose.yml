@@ -1,5 +1,5 @@
 services:
-  wov-quest-result:
+  bot:
     image: pihkaal/wov-quest-result:latest
     networks:
       - web
