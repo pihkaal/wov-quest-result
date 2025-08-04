@@ -169,15 +169,26 @@ client.on("messageCreate", async (message) => {
 
       let clanMember = clanMembers.find((x) => x.username === playerName);
       if (!clanMember) {
-        await message.reply(
-          `'${playerName}' n'est pas dans le clan (la honte). **Attention les majuscules sont importantes**`,
-        );
+        await message.reply({
+          embeds: [
+            {
+              description: `### ❌ Erreur\n\n\n\`${playerName}\` n'est pas dans le clan (la honte).\n**Attention les majuscules sont importantes**`,
+              color: 15335424,
+            },
+          ],
+        });
       } else {
         if (args.length === 2) {
           if (!message.member.roles.cache.has("1147963065640439900")) {
-            await message.reply(
-              "Tu t'es cru chez mémé ou quoi faut être staff",
-            );
+            await message.reply({
+              embeds: [
+                {
+                  description:
+                    "### ❌ Erreur\n\n\nTu t'es cru chez mémé ou quoi faut être staff",
+                  color: 15335424,
+                },
+              ],
+            });
             return;
           }
 
@@ -186,9 +197,15 @@ client.on("messageCreate", async (message) => {
             !args[1] ||
             isNaN(Number(args[1].substring(1)))
           ) {
-            await message.reply(
-              `Format: \`@LBF gemmes <pseudo> <+GEMMES|-GEMMES>\`.\nExemple:\`@LBF gemmes Yuno -10000\`. **Attention les majuscules sont importantes**`,
-            );
+            await message.reply({
+              embeds: [
+                {
+                  description:
+                    "### ❌ Erreur\n\n\nFormat: \`@LBF gemmes <pseudo> <+GEMMES|-GEMMES>\`\nExemple:\`@LBF gemmes Yuno -10000\`\n**Attention les majuscules sont importantes**",
+                  color: 15335424,
+                },
+              ],
+            });
             return;
           }
 
@@ -202,7 +219,15 @@ client.on("messageCreate", async (message) => {
         }
 
         const balance = await getAccountBalance(clanMember.playerId);
-        await message.reply(`Gemmes accumulées par ${playerName}: ${balance}`);
+        // await message.reply(`Gemmes accumulées par ${playerName}: ${balance}`);
+        await message.reply({
+          embeds: [
+            {
+              description: `### 💎 Compte de ${playerName}\n\n\nGemmes disponibles: **${balance}**\n\n-# Voir avec <@294871767820795904> pour échanger contre skin/carte etc`,
+              color: 4360641,
+            },
+          ],
+        });
       }
     }
   }
