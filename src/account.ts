@@ -1,4 +1,4 @@
-const ACCOUNTS_FILE = "./accounts.json";
+const ACCOUNTS_FILE = "./.cache/accounts.json";
 
 export const initAccounts = async (): Promise<void> => {
   if (!(await Bun.file(ACCOUNTS_FILE).exists())) {
