@@ -4,8 +4,10 @@ import { makeResultEmbed } from "./discord";
 import { env } from "./env";
 import {
   checkForNewQuest,
+  getClanInfos,
   getClanMembers,
   getLatestQuest,
+  searchPlayer,
   type QuestResult,
 } from "./wov";
 
@@ -156,6 +158,66 @@ client.on("messageCreate", async (message) => {
       .split(" ");
     if (command === "ping") {
       await message.reply("pong");
+    } else if (command === "icone") {
+      let playerName = args[0];
+      if (!playerName) {
+        await message.reply({
+          embeds: [
+            {
+              description: `### ❌ Erreur\n\n\n\nUsage:\`@LBF icone NOM_JOUEUR\`, exemple: \`@LBF icone Yuno\`.\n**Attention les majuscules sont importantes**`,
+              color: 15335424,
+            },
+          ],
+        });
+        return;
+      }
+
+      const player = await searchPlayer(playerName);
+      if (!player) {
+        await message.reply({
+          embeds: [
+            {
+              description: `### ❌ Erreur\n\n\n\nJoueur·euse non trouvé·e.\n**Attention les majuscules sont importantes**`,
+              color: 15335424,
+            },
+          ],
+        });
+        return;
+      }
+
+      if (!player.clanId) {
+        await message.reply({
+          embeds: [
+            {
+              description: `### ❌ Erreur\n\n\n\nCette personne n'a pas de clan.\n**Attention les majuscules sont importantes**`,
+              color: 15335424,
+            },
+          ],
+        });
+        return;
+      }
+
+      const clan = await getClanInfos(player.clanId);
+      if (!clan) {
+        await message.reply({
+          embeds: [
+            {
+              description: `### ❌ Erreur\n\n\n\nImpossible de récupérer les informations du clan.`,
+              color: 15335424,
+            },
+          ],
+        });
+        return;
+      }
+
+      await message.reply({
+        embeds: [
+          {
+            description: `### ✅ Informations du clan\n\n**Nom:** \`\`\`${clan.name}\`\`\`\n**Tag:** \`\`\`${clan.tag}\`\`\``,
+            color: 65280,
+          },
+        ],
+      });
     } else if (command === "result") {
       const quest = await getLatestQuest();
       await askForGrinders(quest);
