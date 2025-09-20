@@ -1,4 +1,3 @@
-import { isFunctionDeclaration } from "typescript";
 import { getAccountBalance, initAccounts, setAccountBalance } from "./account";
 import { makeResultEmbed } from "./discord";
 import { env } from "./env";
@@ -11,14 +10,22 @@ import {
   type QuestResult,
 } from "./wov";
 
-import { ChannelType, Client, GatewayIntentBits, Message } from "discord.js";
+import {
+  ChannelType,
+  Client,
+  GatewayIntentBits,
+  Message,
+  Partials,
+} from "discord.js";
 
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMessages,
     GatewayIntentBits.MessageContent,
+    GatewayIntentBits.DirectMessages,
   ],
+  partials: [Partials.Message, Partials.Channel],
 });
 
 const askForGrinders = async (quest: QuestResult) => {
@@ -149,7 +156,9 @@ client.on("ready", async (client) => {
 });
 
 client.on("messageCreate", async (message) => {
-  if (message.author.bot || !message.member) return;
+  if (message.author.bot) return;
+
+  const displayName = message.member?.displayName || message.author.username;
 
   if (message.content.startsWith(`<@${client.user!.id}>`)) {
     const [command, ...args] = message.content
@@ -222,7 +231,7 @@ client.on("messageCreate", async (message) => {
       const quest = await getLatestQuest();
       await askForGrinders(quest);
     } else if (command === "gemmes") {
-      let playerName = message.member.displayName.replace("🕸 |", "").trim();
+      let playerName = displayName.replace("🕸 |", "").trim();
       if (args.length >= 1) {
         playerName = args[0];
       }
@@ -240,7 +249,7 @@ client.on("messageCreate", async (message) => {
           ],
         });
       } else {
-        if (args.length === 2) {
+        if (args.length === 2 && message.member) {
           if (!message.member.roles.cache.has("1147963065640439900")) {
             await message.reply({
               embeds: [
