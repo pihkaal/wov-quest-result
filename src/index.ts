@@ -198,7 +198,7 @@ client.on("messageCreate", async (message) => {
         await message.reply({
           embeds: [
             {
-              description: `### ❌ Erreur\n\n\n\nCette personne n'a pas de clan.\n**Attention les majuscules sont importantes**`,
+              description: `### ❌ Erreur\n\n\n\nCette personne __n'a pas de clan__ ou __a caché son clan__.\n**Attention les majuscules sont importantes**`,
               color: 15335424,
             },
           ],
