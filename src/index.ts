@@ -1,6 +1,7 @@
 import { getAccountBalance, initAccounts, setAccountBalance } from "./account";
 import { makeResultEmbed } from "./discord";
 import { env } from "./env";
+import { initTracking, listTrackedPlayers, trackWovPlayer } from "./tracking";
 import {
   checkForNewQuest,
   getClanInfos,
@@ -13,6 +14,7 @@ import {
 import {
   ChannelType,
   Client,
+  EmbedBuilder,
   GatewayIntentBits,
   Message,
   Partials,
@@ -163,6 +165,35 @@ const fn = async () => {
   }
 };
 
+const trackingCron = async () => {
+  const trackedPlayers = await listTrackedPlayers();
+  for (const playerId of trackedPlayers) {
+    const res = await trackWovPlayer(playerId);
+    if (res.event !== "changed") return;
+
+    const chan = client.channels.cache.get(env.DISCORD_TRACKING_CHANNEL);
+    if (!chan?.isSendable()) throw "Invalid tracking channel";
+
+    const lastUsername = res.oldUsernames[res.oldUsernames.length - 1];
+
+    await chan.send({
+      embeds: [
+        {
+          description: `### [UPDATE] \`${lastUsername}\` -> \`${res.newUsername}\` [\`${playerId}\`]`,
+          fields: [
+            { name: "Nouveau pseudo", value: `\`${res.newUsername}\`` },
+            {
+              name: "Anciens pseudos",
+              value: res.oldUsernames.map((x) => `- \`${x}\``).join("\n"),
+            },
+          ],
+          color: 0x89cff0,
+        },
+      ],
+    });
+  }
+};
+
 client.on("ready", async (client) => {
   console.log(`Logged in as ${client.user.username}`);
 
@@ -179,9 +210,13 @@ client.on("ready", async (client) => {
     }
   } else {
     await initAccounts();
+    await initTracking();
 
     await fn();
     setInterval(fn, env.WOV_FETCH_INTERVAL);
+
+    await trackingCron();
+    setInterval(trackingCron, env.WOV_TRACKING_INTERVAL);
   }
 });
 
@@ -197,6 +232,88 @@ client.on("messageCreate", async (message) => {
       .split(" ");
     if (command === "ping") {
       await message.reply("pong");
+    } else if (command === "track") {
+      let playerName = args[0];
+      if (!playerName) {
+        await message.reply({
+          embeds: [
+            {
+              description: `### ❌ Erreur\n\n\n\nUsage:\`@LBF track NOM_JOUEUR\`, exemple: \`@LBF track Yuno\`.\n**Attention les majuscules sont importantes**`,
+              color: 15335424,
+            },
+          ],
+        });
+        return;
+      }
+
+      const player = await searchPlayer(playerName);
+      if (!player) {
+        await message.reply({
+          embeds: [
+            {
+              description: `### ❌ Erreur\n\n\n\nCette personne n'existe pas.\n**Attention les majuscules sont importantes**`,
+              color: 15335424,
+            },
+          ],
+        });
+        return;
+      }
+
+      // 0x89cff0
+
+      const res = await trackWovPlayer(player.id);
+      switch (res.event) {
+        case "notFound": {
+          await message.reply({
+            embeds: [
+              {
+                description: `### ❌ Erreur\n\n\n\nCette personne n'existe pas.\n**Attention les majuscules sont importantes**`,
+                color: 15335424,
+              },
+            ],
+          });
+          return;
+        }
+
+        case "registered": {
+          await message.reply({
+            embeds: [
+              {
+                description: `Tracker enregistré pour \`${playerName}\` [\`${player.id}\`]`,
+                color: 0x89cff0,
+              },
+            ],
+          });
+
+          const chan = client.channels.cache.get(env.DISCORD_TRACKING_CHANNEL);
+          if (!chan?.isSendable()) throw "Invalid tracking channel";
+
+          await chan.send({
+            embeds: [
+              {
+                description: `### [NEW] \`${playerName}\` [\`${player.id}\`]`,
+                color: 0x89cff0,
+              },
+            ],
+          });
+          return;
+        }
+        case "none": {
+          await message.reply({
+            embeds: [
+              {
+                description: `Tracker déjà enregistré pour \`${playerName}\` [\`${player.id}\`]`,
+                color: 0x89cff0,
+              },
+            ],
+          });
+          return;
+        }
+        case "changed": {
+          // ignored
+          break;
+        }
+      }
     } else if (command === "icone") {
       let playerName = args[0];
       if (!playerName) {

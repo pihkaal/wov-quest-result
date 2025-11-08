@@ -91,6 +91,7 @@ export const searchPlayer = async (username: string) => {
     if (response.status === 404) return null;
 
     const data = (await response.json()) as {
+      id: string;
       clanId: string | null;
     };
 
@@ -115,3 +116,27 @@ export const getClanInfos = async (clanId: string) => {
 
   return data;
 };
+
+export async function getPlayer(playerId: string) {
+  try {
+    const response = await fetch(
+      `https://api.wolvesville.com/players/${playerId}`,
+      {
+        method: "GET",
+        headers: { Authorization: `Bot ${env.WOV_API_KEY}` },
+      },
+    );
+
+    if (response.status === 404) return null;
+
+    return { username: "test" };
+
+    const data = (await response.json()) as {
+      username: string;
+    };
+
+    return data;
+  } catch {
+    return null;
+  }
+}

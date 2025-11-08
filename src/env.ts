@@ -8,9 +8,11 @@ const schema = z.object({
   DISCORD_REWARDS_CHANNEL: z.string(),
   DISCORD_ADMIN_MENTION: z.string(),
   DISCORD_ADMIN_CHANNEL: z.string(),
+  DISCORD_TRACKING_CHANNEL: z.string(),
   WOV_API_KEY: z.string(),
   WOV_CLAN_ID: z.string(),
   WOV_FETCH_INTERVAL: z.coerce.number(),
+  WOV_TRACKING_INTERVAL: z.coerce.number(),
   QUEST_REWARDS: z
     .string()
     .transform((x) => x.split(",").map((x) => x.trim()))
