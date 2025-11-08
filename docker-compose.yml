@@ -7,6 +7,7 @@ services:
       - WOV_CLAN_ID
       - WOV_API_KEY
       - WOV_FETCH_INTERVAL
+      - WOV_TRACKING_INTERVAL
       - QUEST_REWARDS
       - QUEST_EXCLUDE
       - DISCORD_MENTION
@@ -15,6 +16,7 @@ services:
       - DISCORD_BOT_TOKEN
       - DISCORD_ADMIN_MENTION
       - DISCORD_ADMIN_CHANNEL
+      - DISCORD_TRACKING_CHANNEL
     volumes:
       - cache:/app/.cache
     restart: always
