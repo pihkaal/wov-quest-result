@@ -18,6 +18,23 @@ import {
   Partials,
 } from "discord.js";
 
+// user mode = write in console, send in channel
+const flagIndex = process.argv.indexOf("--user");
+let userMode: { enabled: true; channelId: string } | { enabled: false } = {
+  enabled: false,
+};
+if (flagIndex !== -1) {
+  const channelId = process.argv[flagIndex + 1];
+  if (channelId === undefined) {
+    console.error("ERROR: --user expects channelId as a paramater");
+    process.exit(1);
+  }
+
+  userMode = { enabled: true, channelId };
+}
+
+console.log(`User mode: ${userMode.enabled ? "enabled" : "disabled"}`);
+
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
@@ -149,14 +166,27 @@ const fn = async () => {
 client.on("ready", async (client) => {
   console.log(`Logged in as ${client.user.username}`);
 
-  await initAccounts();
+  if (userMode.enabled) {
+    const chan = client.channels.cache.get(userMode.channelId);
+    if (chan?.type !== ChannelType.GuildText) {
+      console.error("ERROR: invalid channel");
+      process.exit(1);
+    }
+    process.stdout.write(`${chan.name} ~ `);
+    for await (const line of console) {
+      await chan.send(line);
+      process.stdout.write(`${chan.name} ~ `);
+    }
+  } else {
+    await initAccounts();
 
-  await fn();
-  setInterval(fn, env.WOV_FETCH_INTERVAL);
+    await fn();
+    setInterval(fn, env.WOV_FETCH_INTERVAL);
+  }
 });
 
 client.on("messageCreate", async (message) => {
-  if (message.author.bot) return;
+  if (message.author.bot || userMode.enabled) return;
 
   const displayName = message.member?.displayName || message.author.username;
 
