@@ -233,6 +233,19 @@ client.on("messageCreate", async (message) => {
     if (command === "ping") {
       await message.reply("pong");
     } else if (command === "track") {
+      if (!message.member.roles.cache.has("1147963065640439900")) {
+        await message.reply({
+          embeds: [
+            {
+              description:
+                "### ❌ Erreur\n\n\nTu t'es cru chez mémé ou quoi faut être staff",
+              color: 15335424,
+            },
+          ],
+        });
+        return;
+      }
+
       let playerName = args[0];
       if (!playerName) {
         await message.reply({
