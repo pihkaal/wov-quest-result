@@ -17,6 +17,20 @@ export async function listTrackedPlayers(): Promise<string[]> {
   return Object.keys(trackedPlayers);
 }
 
+export async function untrackWovPlayer(
+  playerId: string,
+): Promise<{ event: "notTracked" } | { event: "trackerRemoved" }> {
+  const trackedPlayers: TrackedPlayers =
+    await Bun.file(TRACKED_PLAYER_FILE).json();
+
+  if (!trackedPlayers[playerId]) return { event: "notTracked" };
+
+  delete trackedPlayers[playerId];
+  await Bun.file(TRACKED_PLAYER_FILE).write(JSON.stringify(trackedPlayers));
+
+  return { event: "trackerRemoved" };
+}
+
 export async function trackWovPlayer(playerId: string): Promise<
   | { event: "notFound" }
   | {

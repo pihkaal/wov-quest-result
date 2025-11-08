@@ -1,7 +1,12 @@
 import { getAccountBalance, initAccounts, setAccountBalance } from "./account";
 import { makeResultEmbed } from "./discord";
 import { env } from "./env";
-import { initTracking, listTrackedPlayers, trackWovPlayer } from "./tracking";
+import {
+  initTracking,
+  listTrackedPlayers,
+  trackWovPlayer,
+  untrackWovPlayer,
+} from "./tracking";
 import {
   checkForNewQuest,
   getClanInfos,
@@ -232,7 +237,86 @@ client.on("messageCreate", async (message) => {
       .split(" ");
     if (command === "ping") {
       await message.reply("pong");
+    } else if (command === "tejtrack") {
+      if (!message.member) return;
+      if (!message.member.roles.cache.has("1147963065640439900")) {
+        await message.reply({
+          embeds: [
+            {
+              description:
+                "### ❌ Erreur\n\n\nTu t'es cru chez mémé ou quoi faut être staff",
+              color: 15335424,
+            },
+          ],
+        });
+        return;
+      }
+
+      let playerName = args[0];
+      if (!playerName) {
+        await message.reply({
+          embeds: [
+            {
+              description: `### ❌ Erreur\n\n\n\nUsage:\`@LBF untrack NOM_JOUEUR\`, exemple: \`@LBF untrack Yuno\`.\n**Attention les majuscules sont importantes**`,
+              color: 15335424,
+            },
+          ],
+        });
+        return;
+      }
+
+      const player = await searchPlayer(playerName);
+      if (!player) {
+        await message.reply({
+          embeds: [
+            {
+              description: `### ❌ Erreur\n\n\n\nCette personne n'existe pas.\n**Attention les majuscules sont importantes**`,
+              color: 15335424,
+            },
+          ],
+        });
+        return;
+      }
+
+      const res = await untrackWovPlayer(player.id);
+      switch (res.event) {
+        case "notTracked": {
+          await message.reply({
+            embeds: [
+              {
+                description: `Pas de tracker pour \`${playerName}\` [\`${player.id}\`]`,
+                color: 0x89cff0,
+              },
+            ],
+          });
+          break;
+        }
+        case "trackerRemoved": {
+          await message.reply({
+            embeds: [
+              {
+                description: `Tracker enlevé pour \`${playerName}\` [\`${player.id}\`]`,
+                color: 0x89cff0,
+              },
+            ],
+          });
+
+          const chan = client.channels.cache.get(env.DISCORD_TRACKING_CHANNEL);
+          if (!chan?.isSendable()) throw "Invalid tracking channel";
+
+          await chan.send({
+            embeds: [
+              {
+                description: `### [REMOVED] \`${playerName}\` [\`${player.id}\`]`,
+                color: 0x89cff0,
+              },
+            ],
+          });
+          break;
+        }
+      }
     } else if (command === "track") {
+      if (!message.member) return;
       if (!message.member.roles.cache.has("1147963065640439900")) {
         await message.reply({
           embeds: [
@@ -271,8 +355,6 @@ client.on("messageCreate", async (message) => {
         });
         return;
       }
-
-      // 0x89cff0
 
       const res = await trackWovPlayer(player.id);
       switch (res.event) {
