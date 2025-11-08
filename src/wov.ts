@@ -129,8 +129,6 @@ export async function getPlayer(playerId: string) {
 
     if (response.status === 404) return null;
 
-    return { username: "test" };
-
     const data = (await response.json()) as {
       username: string;
     };
