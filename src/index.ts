@@ -174,7 +174,7 @@ const trackingCron = async () => {
   const trackedPlayers = await listTrackedPlayers();
   for (const playerId of trackedPlayers) {
     const res = await trackWovPlayer(playerId);
-    if (res.event !== "changed") return;
+    if (res.event !== "changed") continue;
 
     const chan = client.channels.cache.get(env.DISCORD_TRACKING_CHANNEL);
     if (!chan?.isSendable()) throw "Invalid tracking channel";
